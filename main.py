@@ -1,12 +1,12 @@
 from telebot import TeleBot, types, apihelper
 from time import sleep
-from datetime import datetime
-from site_parser import parse, TEST_URL
+from datetime import datetime, timedelta
+from parsers import parser_base, kufar_parser, infoflat_parser
 
 
 TOKEN = "7189321535:AAGFaQuc_4JnG_Lm7VH7ObM7zikJ3A1wPKs"
 CHAT = 484336401
-SLEEP_TIME = 5 * 60
+SLEEP_TIME_MINUTES = 5
 
 bot = TeleBot(TOKEN)
 
@@ -18,48 +18,45 @@ def start(message: types.Message):
     bot.send_message("I'm not ready")
 
 
-def format_caption(flat: dict[str, str]):
-    return (
-        f"*{flat['rooms']}*\n" +
-        f"{flat['location']}, _{flat['subway']}_\n" +
-        f"*{flat['price']}*, {flat['time']}\n" +
-        f"{flat['url']}"
-    )
-
-
-def send_flats(flats: list[dict[str, str]]):
+def send_flats(flats: list[parser_base.FlatInfo]):
     for flat in flats:
-        caption = format_caption(flat)
-
         try:
             bot.send_photo(
                 CHAT,
-                flat["image"],
-                caption=caption,
+                flat.image,
+                caption=flat.format_caption(),
                 parse_mode="markdown"
             )
         except apihelper.ApiTelegramException as e:
             try:
-                bot.send_message(CHAT, caption, parse_mode="markdown")
+                bot.send_message(CHAT, flat.format_caption(),
+                                 parse_mode="markdown")
             except apihelper.ApiTelegramException as e:
-                print(f"{e.description} -- {flat['url']}")
+                print(f"{e.description} -- {flat.url}")
 
 
 def main():
     # bot.infinity_polling()
 
+    kufar = parser_base.FlatParser(
+        kufar_parser.KufarParserEngine, kufar_parser.URL)
+    infoflat = parser_base.FlatParser(
+        infoflat_parser.InfoflatParserEngine, infoflat_parser.URL)
+
+    deltatime = timedelta(minutes=SLEEP_TIME_MINUTES + 2)
+
     while True:
-        flats = parse()
+        flats = infoflat.parse(deltatime) + kufar.parse(deltatime)
 
         print(f"{datetime.now()} -- {len(flats)}")
         send_flats(flats)
 
-        sleep(SLEEP_TIME)
+        sleep(SLEEP_TIME_MINUTES * 60)
 
 
 if __name__ == '__main__':
     print("Hello from infoflatbyBot")
 
-    bot.send_message(CHAT, "Hello from infoflatbyBot")
+    # bot.send_message(CHAT, "Hello from infoflatbyBot")
 
     main()
