@@ -11,7 +11,7 @@ class FlatInfo:
         price: str,
         image: str,
         url: str,
-        subway: str = None
+        subway: str = ""
     ):
         self.datetime = datetime
         self.rooms = rooms
@@ -25,7 +25,7 @@ class FlatInfo:
         return (
             f"*{self.rooms}*\n" +
             f"{self.location}" +
-            f", _{self.subway}_\n" if self.subway is not None else "\n" +
+            (f", _{self.subway}_\n" if self.subway != "" else "\n") +
             f"*{self.price}*, {self.datetime.strftime('%H:%M')}\n" +
             f"{self.url}"
         )
@@ -36,7 +36,7 @@ class FlatInfo:
 
 class ParserEngineBase(abc.ABC):
     @abc.abstractmethod
-    def parse(self, url: str) -> list[FlatInfo]:
+    async def parse(self, url: str) -> list[FlatInfo]:
         ...
 
 
@@ -45,7 +45,11 @@ class FlatParser():
         self.__engine = engine_class()
         self.__url = parsing_url
 
-    def parse(self, deltatime: timedelta) -> list[FlatInfo]:
-        flats = self.__engine.parse(self.__url)
+    async def parse(self, deltatime: timedelta) -> list[FlatInfo]:
+        flats = await self.__engine.parse(self.__url)
 
         return [f for f in flats if datetime.now() - f.datetime < deltatime]
+
+
+def test_parser(engine: type[ParserEngineBase], url: str) -> list[FlatInfo]:
+    return FlatParser(engine, url).parse(timedelta.max)

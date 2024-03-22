@@ -1,3 +1,0 @@
--d \
---restart unless-stopped \ 
--e TZ=Europe/Moscow \

@@ -1,7 +1,7 @@
 from telebot import TeleBot, types, apihelper
-from time import sleep
 from datetime import datetime, timedelta
 from parsers import parser_base, kufar_parser, infoflat_parser
+import asyncio
 
 
 TOKEN = "7189321535:AAGFaQuc_4JnG_Lm7VH7ObM7zikJ3A1wPKs"
@@ -35,7 +35,7 @@ def send_flats(flats: list[parser_base.FlatInfo]):
                 print(f"{e.description} -- {flat.url}")
 
 
-def main():
+async def main():
     # bot.infinity_polling()
 
     kufar = parser_base.FlatParser(
@@ -43,15 +43,15 @@ def main():
     infoflat = parser_base.FlatParser(
         infoflat_parser.InfoflatParserEngine, infoflat_parser.URL)
 
-    deltatime = timedelta(minutes=SLEEP_TIME_MINUTES + 2)
+    deltatime = timedelta(minutes=SLEEP_TIME_MINUTES + 1)
 
     while True:
-        flats = infoflat.parse(deltatime) + kufar.parse(deltatime)
+        flats = await infoflat.parse(deltatime) + await kufar.parse(deltatime)
 
-        print(f"{datetime.now()} -- {len(flats)}")
+        print(f"New flats: {datetime.now()} -- {len(flats)}")
         send_flats(flats)
 
-        sleep(SLEEP_TIME_MINUTES * 60)
+        await asyncio.sleep(SLEEP_TIME_MINUTES * 60)
 
 
 if __name__ == '__main__':
@@ -59,4 +59,4 @@ if __name__ == '__main__':
 
     # bot.send_message(CHAT, "Hello from infoflatbyBot")
 
-    main()
+    asyncio.get_event_loop().run_until_complete(main())

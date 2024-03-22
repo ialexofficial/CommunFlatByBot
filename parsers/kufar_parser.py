@@ -1,5 +1,5 @@
-import requests
-from .parser_base import ParserEngineBase, FlatInfo
+from requests_html import AsyncHTMLSession
+from .parser_base import ParserEngineBase, FlatInfo, test_parser
 from bs4 import BeautifulSoup as bs
 from datetime import time, datetime
 
@@ -7,10 +7,13 @@ URL = "https://re.kufar.by/l/minsk/snyat/kvartiru-dolgosrochno/bez-posrednikov?c
 
 
 class KufarParserEngine(ParserEngineBase):
-    def parse(self, url=URL):
-        response = requests.get(url)
+    async def parse(self, url=URL):
+        session = AsyncHTMLSession()
 
-        flats = self.parse_html(response.text)
+        response = await session.get(url)
+        await response.html.arender(timeout=60)
+
+        flats = self.parse_html(response.html.raw_html.decode())
 
         return flats
 
@@ -31,6 +34,8 @@ class KufarParserEngine(ParserEngineBase):
                 flat.find("div", class_=lambda c: check_for_class_substr(c, "_date_")))
 
             if image is None or "Сегодня" not in time_text:
+                # print(
+                # f"Not today {flat['href']} -- Image: {image} -- time_text: {time_text}")
                 continue
 
             time_text = time_text.removeprefix("Сегодня, ")
@@ -40,7 +45,7 @@ class KufarParserEngine(ParserEngineBase):
 
             result.append(FlatInfo(
                 datetime=datetime.combine(
-                    datetime.date(), time.fromisoformat(time_text)),
+                    datetime.now().date(), time.fromisoformat(time_text)),
                 rooms=get_text(
                     flat.find("div", class_=lambda c: check_for_class_substr(c, "_parameters_"))),
                 location=get_text(location),
@@ -57,6 +62,4 @@ class KufarParserEngine(ParserEngineBase):
 
 
 if __name__ == "__main__":
-    kufarParser = KufarParserEngine()
-
-    print(kufarParser.parse())
+    print(*test_parser(KufarParserEngine, URL))
