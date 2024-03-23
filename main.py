@@ -32,7 +32,10 @@ def send_flats(flats: list[parser_base.FlatInfo]):
                 bot.send_message(CHAT, flat.format_caption(),
                                  parse_mode="markdown")
             except apihelper.ApiTelegramException as e:
-                print(f"{e.description} -- {flat.url}")
+                print("-------------------")
+                print(f"{e.function_name} -- {e.description}")
+                print(flat.format_caption())
+                print("-------------------")
 
 
 async def main():

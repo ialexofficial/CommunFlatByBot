@@ -30,13 +30,13 @@ class InfoflatParserEngine(ParserEngineBase):
             bottom_part = flat.div.select_one("a:last-child")
 
             passed_time = timedelta(minutes=int(re.match("^\d+",
-                top_part.select_one(".property-location").text.strip())[0]))
+                                                         top_part.select_one(".property-location").text.strip())[0]))
             subway = bottom_part.select(".property-location")
 
             if len(subway) < 2:
                 subway = ""
             else:
-                subway = subway[0].text.strip()
+                subway = subway[1].text.strip()
 
             result.append(FlatInfo(
                 datetime=datetime.now() - passed_time,
@@ -53,4 +53,4 @@ class InfoflatParserEngine(ParserEngineBase):
 
 
 if __name__ == "__main__":
-    print(*test_parser(InfoflatParserEngine))
+    print(*test_parser(InfoflatParserEngine).send(None))

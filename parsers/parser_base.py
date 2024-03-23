@@ -28,7 +28,7 @@ class FlatInfo:
             (f", _{self.subway}_\n" if self.subway != "" else "\n") +
             f"*{self.price}*, {self.datetime.strftime('%H:%M')}\n" +
             f"{self.url}"
-        )
+        ).replace("*", "")
 
     def __str__(self):
         return self.format_caption()
@@ -51,5 +51,5 @@ class FlatParser():
         return [f for f in flats if datetime.now() - f.datetime < deltatime]
 
 
-def test_parser(engine: type[ParserEngineBase], url: str) -> list[FlatInfo]:
-    return FlatParser(engine, url).parse(timedelta.max)
+async def test_parser(engine: type[ParserEngineBase], url: str) -> list[FlatInfo]:
+    return await FlatParser(engine, url).parse(timedelta.max)
