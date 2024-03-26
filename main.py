@@ -58,7 +58,7 @@ async def main():
 
 
 if __name__ == '__main__':
-    print("Hello from infoflatbyBot")
+    print("Hello from CommunFlatByBot:1.1.2")
 
     # bot.send_message(CHAT, "Hello from infoflatbyBot")
 

@@ -8,11 +8,9 @@ URL = "https://re.kufar.by/l/minsk/snyat/kvartiru-dolgosrochno/bez-posrednikov?c
 
 
 class KufarParserEngine(ParserEngineBase):
-    async def parse(self, url=URL):
-        session = AsyncHTMLSession()
-
+    async def parse(self, session: AsyncHTMLSession, url=URL):
         response = await session.get(url)
-        await response.html.arender(timeout=60)
+        await response.html.arender(timeout=0)
 
         flats = self.parse_html(response.html.raw_html.decode())
 

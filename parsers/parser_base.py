@@ -1,5 +1,6 @@
 import abc
 from datetime import datetime, timedelta
+from requests_html import AsyncHTMLSession
 
 
 class FlatInfo:
@@ -36,7 +37,7 @@ class FlatInfo:
 
 class ParserEngineBase(abc.ABC):
     @abc.abstractmethod
-    async def parse(self, url: str) -> list[FlatInfo]:
+    async def parse(self, session: AsyncHTMLSession, url: str) -> list[FlatInfo]:
         ...
 
 
@@ -44,9 +45,10 @@ class FlatParser():
     def __init__(self, engine_class: type[ParserEngineBase], parsing_url: str):
         self.__engine = engine_class()
         self.__url = parsing_url
+        self.__session = AsyncHTMLSession()
 
     async def parse(self, deltatime: timedelta) -> list[FlatInfo]:
-        flats = await self.__engine.parse(self.__url)
+        flats = await self.__engine.parse(self.__session, self.__url)
 
         return [f for f in flats if datetime.now() - f.datetime < deltatime]
 

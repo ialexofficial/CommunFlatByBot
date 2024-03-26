@@ -10,11 +10,9 @@ URL = "https://infoflat.by/#MaxPrice=260&Rooms%5B%5D=1&Rooms%5B%5D=2&Rooms%5B%5D
 
 
 class InfoflatParserEngine(ParserEngineBase):
-    async def parse(self, url=URL):
-        session = AsyncHTMLSession()
-
+    async def parse(self, session: AsyncHTMLSession, url=URL):
         response = await session.get(url)
-        await response.html.arender(timeout=60)
+        await response.html.arender(timeout=0)
 
         flats = self.parse_html(response.html.raw_html.decode())
 
