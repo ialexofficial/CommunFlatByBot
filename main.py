@@ -1,7 +1,8 @@
 from telebot import TeleBot, types, apihelper
 from datetime import datetime, timedelta
-from parsers import parser_base, kufar_parser, infoflat_parser
-import asyncio
+from time import sleep
+from parsers import parser_base, kufar_parser, onliner_parser
+from playwright.sync_api import sync_playwright
 
 
 TOKEN = "7189321535:AAGFaQuc_4JnG_Lm7VH7ObM7zikJ3A1wPKs"
@@ -38,28 +39,30 @@ def send_flats(flats: list[parser_base.FlatInfo]):
                 print("-------------------")
 
 
-async def main():
+def main():
     # bot.infinity_polling()
+    playwright = sync_playwright().start()
+    browser = playwright.chromium.launch(headless=True)
 
     kufar = parser_base.FlatParser(
-        kufar_parser.KufarParserEngine, kufar_parser.URL)
-    infoflat = parser_base.FlatParser(
-        infoflat_parser.InfoflatParserEngine, infoflat_parser.URL)
+        kufar_parser.KufarParserEngine, kufar_parser.URL, browser.new_page())
+    onliner = parser_base.FlatParser(
+        onliner_parser.OnlinerParserEngine, onliner_parser.URL, browser.new_page())
 
-    deltatime = timedelta(minutes=SLEEP_TIME_MINUTES + 1)
+    deltatime = timedelta(minutes=SLEEP_TIME_MINUTES + 2)
 
     while True:
-        flats = await infoflat.parse(deltatime) + await kufar.parse(deltatime)
+        flats = kufar.parse(deltatime) + onliner.parse(deltatime)
 
         print(f"New flats: {datetime.now()} -- {len(flats)}")
         send_flats(flats)
 
-        await asyncio.sleep(SLEEP_TIME_MINUTES * 60)
+        sleep(SLEEP_TIME_MINUTES * 60)
 
 
-if __name__ == '__main__':
-    print("Hello from CommunFlatByBot:1.1.2")
+if __name__ == "__main__":
+    print("Hello from CommunFlatByBot:1.2.0")
 
     # bot.send_message(CHAT, "Hello from infoflatbyBot")
 
-    asyncio.get_event_loop().run_until_complete(main())
+    main()

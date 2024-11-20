@@ -1,6 +1,6 @@
 import abc
 from datetime import datetime, timedelta
-from requests_html import AsyncHTMLSession
+from playwright.sync_api import sync_playwright, Page
 
 
 class FlatInfo:
@@ -37,21 +37,25 @@ class FlatInfo:
 
 class ParserEngineBase(abc.ABC):
     @abc.abstractmethod
-    async def parse(self, session: AsyncHTMLSession, url: str) -> list[FlatInfo]:
+    def parse(self, page_content: str) -> list[FlatInfo]:
         ...
 
 
 class FlatParser():
-    def __init__(self, engine_class: type[ParserEngineBase], parsing_url: str):
+    def __init__(self, engine_class: type[ParserEngineBase], parsing_url: str, page: Page):
         self.__engine = engine_class()
         self.__url = parsing_url
-        self.__session = AsyncHTMLSession()
+        self.__page = page
+        self.__page.goto(self.__url)
 
-    async def parse(self, deltatime: timedelta) -> list[FlatInfo]:
-        flats = await self.__engine.parse(self.__session, self.__url)
+    def parse(self, deltatime: timedelta) -> list[FlatInfo]:
+        self.__page.reload()
+        self.__page.wait_for_load_state("networkidle")
+
+        flats = self.__engine.parse(self.__page.content())
 
         return [f for f in flats if datetime.now() - f.datetime < deltatime]
 
 
-async def test_parser(engine: type[ParserEngineBase], url: str) -> list[FlatInfo]:
-    return await FlatParser(engine, url).parse(timedelta.max)
+def test_parser(engine: type[ParserEngineBase], url: str) -> list[FlatInfo]:
+    return FlatParser(engine, url).parse(timedelta.max)

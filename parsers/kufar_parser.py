@@ -1,18 +1,18 @@
-from requests_html import AsyncHTMLSession
-from .parser_base import ParserEngineBase, FlatInfo, test_parser
 from bs4 import BeautifulSoup as bs
 from datetime import time, datetime
-import asyncio
 
-URL = "https://re.kufar.by/l/minsk/snyat/kvartiru-dolgosrochno/bez-posrednikov?cur=USD&prc=r%3A0%2C260&size=30"
+if __name__ == "__main__":
+    from parser_base import ParserEngineBase, FlatInfo, test_parser
+else:
+    from .parser_base import ParserEngineBase, FlatInfo
+
+
+URL = "https://re.kufar.by/l/minsk/snyat/kvartiru-dolgosrochno/bez-posrednikov?cur=USD&prc=r%3A0%2C300"
 
 
 class KufarParserEngine(ParserEngineBase):
-    async def parse(self, session: AsyncHTMLSession, url=URL):
-        response = await session.get(url)
-        await response.html.arender(timeout=0)
-
-        flats = self.parse_html(response.html.raw_html.decode())
+    def parse(self, content: str):
+        flats = self.parse_html(content)
 
         return flats
 
@@ -61,7 +61,5 @@ class KufarParserEngine(ParserEngineBase):
 
 
 if __name__ == "__main__":
-    async def test():
-        print(*(await test_parser(KufarParserEngine, URL)))
-
-    asyncio.run(test())
+    for i in test_parser(KufarParserEngine, URL):
+        print(i)
