@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from parsers import parser_base, kufar_parser, onliner_parser
 from playwright.sync_api import sync_playwright
+import os
 
 
 TOKEN = "7189321535:AAGFaQuc_4JnG_Lm7VH7ObM7zikJ3A1wPKs"
@@ -61,7 +62,9 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Hello from CommunFlatByBot:1.2.0")
+    version_tag = os.environ.get(key="APP_VERSION_TAG")
+
+    print(f"Hello from CommunFlatByBot{f":{version_tag}" if version_tag is not None else ""}")
 
     # bot.send_message(CHAT, "Hello from infoflatbyBot")
 

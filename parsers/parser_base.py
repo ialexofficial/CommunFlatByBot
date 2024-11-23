@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright, Page
 
 
+RELOAD_TIMEOUT = 90_000
+
+
 class FlatInfo:
     def __init__(
         self,
@@ -49,7 +52,7 @@ class FlatParser():
         self.__page.goto(self.__url)
 
     def parse(self, deltatime: timedelta) -> list[FlatInfo]:
-        self.__page.reload()
+        self.__page.reload(timeout=RELOAD_TIMEOUT)
         self.__page.wait_for_load_state("networkidle")
 
         flats = self.__engine.parse(self.__page.content())
